@@ -20,7 +20,7 @@ public class ShoppingCartTests {
         ShoppingCart cart = new ShoppingCart();
 
         Exception thrown = assertThrows(IllegalArgumentException.class, () ->
-                cart.addItem(title, 10, 1, ShoppingCart.ItemType.NEW));
+                cart.addItem(new RegularItem(title,10,1)));
         assertTrue(thrown.getMessage().contains("Illegal title"));
     }
 
@@ -30,7 +30,7 @@ public class ShoppingCartTests {
         ShoppingCart cart = new ShoppingCart();
 
         Exception thrown = assertThrows(IllegalArgumentException.class, () ->
-                cart.addItem("Test product", price, 1, ShoppingCart.ItemType.NEW));
+                cart.addItem(new RegularItem("Test product", price, 1)));
         assertEquals("Illegal price", thrown.getMessage());
     }
 
@@ -40,7 +40,7 @@ public class ShoppingCartTests {
         ShoppingCart cart = new ShoppingCart();
 
         Exception thrown = assertThrows(IllegalArgumentException.class, () ->
-                cart.addItem("Test product", 10, quantity, ShoppingCart.ItemType.NEW));
+                cart.addItem(new RegularItem("Test product", 10, quantity)));
 
         assertEquals("Illegal quantity", thrown.getMessage());
     }
@@ -50,7 +50,7 @@ public class ShoppingCartTests {
 
         var title = "Test product";
         ShoppingCart cart = new ShoppingCart();
-        cart.addItem(title, 10, 1, ShoppingCart.ItemType.NEW);
+        cart.addItem(new RegularItem(title, 10, 1));
         cart.toString().contains(title);
 
     }
@@ -58,9 +58,9 @@ public class ShoppingCartTests {
 
     @ParameterizedTest
     @MethodSource("getDiscountTestCases")
-    public void TestCalculateDiscount(ShoppingCart.ItemType type, int quantity, int expectedDiscount) {
+    public void TestCalculateDiscount(Item item,  int expectedDiscount) {
 
-        var discount = ShoppingCart.calculateDiscount(type, quantity);
+        var discount = ShoppingCart.calculateDiscount(item);
         assertEquals(expectedDiscount, discount);
 
     }
@@ -68,18 +68,18 @@ public class ShoppingCartTests {
     private static Stream<Arguments> getDiscountTestCases() {
         return Stream.of(
                 // For NEW item discount is 0%;
-                arguments(ShoppingCart.ItemType.NEW, 1, 0),
+                arguments(new NewItem("New item",1,1),0),
                 //  For SECOND_FREE item discount is 50% if quantity > 1
-                arguments(ShoppingCart.ItemType.SECOND_FREE, 2, 50),
+                arguments(new SECOND_FREEItem("Second free item",1,2), 50),
                 //For SALE item discount is 70%,
-                arguments(ShoppingCart.ItemType.SALE, 1, 70),
+                arguments(new SaleItem("Sale item",1,1), 70),
                 //For each full 10 not NEW items item gets additional 1% discount,
-                arguments(ShoppingCart.ItemType.REGULAR, 10, 1),
-                arguments(ShoppingCart.ItemType.REGULAR, 20, 2),
-                arguments(ShoppingCart.ItemType.REGULAR, 95, 9),
+                arguments(new RegularItem("Regular item",1,10), 1),
+                arguments(new RegularItem("Regular item",1,20), 2),
+                arguments(new RegularItem("Regular item",1,95), 9),
                 //but not more than 80% total
-                arguments(ShoppingCart.ItemType.SALE, 100, 80),
-                arguments(ShoppingCart.ItemType.REGULAR, 850, 80)
+                arguments(new SaleItem("Sale item",1,100), 80),
+                arguments(new SaleItem("Sale item",1,850), 80)
         );
     }
 
@@ -93,11 +93,6 @@ public class ShoppingCartTests {
 
     }
 
-    /**
-     * Appends to sb formatted value.
-     * Trims string if its length > width.
-     * @param align -1 for align left, 0 for center and +1 for align right.
-     */
     private static Stream<Arguments> getAppendFormattedTestCases() {
         return Stream.of(
 
@@ -115,4 +110,3 @@ public class ShoppingCartTests {
         );
     }
 }
-
